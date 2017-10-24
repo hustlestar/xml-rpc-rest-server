@@ -1,5 +1,4 @@
 from httplib import HTTPConnection
-import re
 
 
 def prepareBody(method, *args):
@@ -13,7 +12,10 @@ def prepareBody(method, *args):
 def parseResponse(response):
     value = '<value>'
     value = response[response.index(value) + len(value):response.index('</value>')]
-    return value[value.index('>') + 1:value.index('</')]
+    if '<nil/>' in value or 'faultCode' in value:
+        return None
+    else:
+        return value[value.index('>') + 1:value.index('</')]
 
 
 def sendRequest(method, *args):
@@ -22,6 +24,7 @@ def sendRequest(method, *args):
     connection.putrequest('POST', '/RPC2')
     connection.putheader('Content-Type', 'text/xml')
     connection.putheader('User-Agent', 'Python-xmlrpc/3.5')
+
     request_body = prepareBody(method, *args)
     print request_body
     connection.putheader("Content-Length", str(len(request_body)))
